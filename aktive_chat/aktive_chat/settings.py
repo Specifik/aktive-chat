@@ -152,8 +152,3 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
-
-# API Keys (in production, use environment variables)
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
-ELEVENLABS_API_KEY = os.getenv('ELEVENLABS_API_KEY', '')
-ASSEMBLYAI_API_KEY = os.getenv('ASSEMBLYAI_API_KEY', '')
