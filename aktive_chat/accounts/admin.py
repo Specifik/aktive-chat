@@ -1,14 +1,12 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
 from .models import User, Subscription, UserSettings
 
-class CustomUserAdmin(UserAdmin):
-    list_display = ('email', 'username', 'account_type', 'is_email_verified', 'is_staff')
-    list_filter = ('account_type', 'is_email_verified', 'is_staff')
-    fieldsets = UserAdmin.fieldsets + (
-        ('Account Info', {'fields': ('account_type', 'is_email_verified', 'api_key')}),
-    )
+#Simple admin for User model
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    list_display = ['username', 'email', 'is_active']
+    search_fields = ['username', 'email']
 
-admin.site.register(User, CustomUserAdmin)
+#Register other models
 admin.site.register(Subscription)
 admin.site.register(UserSettings)
