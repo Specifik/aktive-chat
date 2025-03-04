@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Speech Translator - Real-time voice translation{% endblock %}
+
+{% block content %}
+<div class="row align-items-center py-5">
+    <div class="col-md-6">
+        <h1 class="display-4 fw-bold">Translate your speech in real-time</h1>
+        <p class="lead">Communicate effortlessly across language barriers with our AI-powered speech translation platform.</p>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+            <a href="{% url 'account_signup' %}" class="btn btn-primary btn-lg px-4 me-md-2">Get Started</a>
+            <a href="{% url 'account_login' %}" class="btn btn-outline-secondary btn-lg px-4">Sign In</a>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <img src="https://via.placeholder.com/600x400" alt="Speech Translation" class="img-fluid rounded shadow">
+    </div>
+</div>
+
+<div class="row py-5">
+    <div class="col-12 text-center mb-5">
+        <h2>How It Works</h2>
+    </div>
+    <div class="col-md-4 text-center mb-4">
+        <div class="p-3">
+            <h3>1. Speak</h3>
+            <p>Start speaking in your language through your microphone.</p>
+        </div>
+    </div>
+    <div class="col-md-4 text-center mb-4">
+        <div class="p-3">
+            <h3>2. Translate</h3>
+            <p>Our AI translates your speech in real-time to your selected language.</p>
+        </div>
+    </div>
+    <div class="col-md-4 text-center mb-4">
+        <div class="p-3">
+            <h3>3. Listen</h3>
+            <p>Hear the translation in a natural-sounding voice.</p>
+        </div>
+    </div>
+</div>
+
+<div class="row py-5 bg-light rounded">
+    <div class="col-12 text-center mb-5">
+        <h2>Choose Your Plan</h2>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white text-center">
+                <h5 class="my-0 fw-normal">Free</h5>
+            </div>
+            <div class="card-body">
+                <h1 class="card-title pricing-card-title">$0 <small class="text-muted">/ mo</small></h1>
+                <ul class="list-unstyled mt-3 mb-4">
+                    <li>10 minutes of translation per month</li>
+                    <li>Basic voice options</li>
+                    <li>Standard translation quality</li>
+                    <li>24-hour history</li>
+                </ul>
+                <div class="d-grid">
+                    <a href="{% url 'account_signup' %}" class="btn btn-outline-primary">Sign Up Free</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white text-center">
+                <h5 class="my-0 fw-normal">Premium</h5>
+            </div>
+            <div class="card-body">
+                <h1 class="card-title pricing-card-title">$9.99 <small class="text-muted">/ mo</small></h1>
+                <ul class="list-unstyled mt-3 mb-4">
+                    <li>100 minutes of translation per month</li>
+                    <li>Premium voice options</li>
+                    <li>High-quality translation</li>
+                    <li>Unlimited history</li>
+                </ul>
+                <div class="d-grid">
+                    <a href="{% url 'account_signup' %}" class="btn btn-primary">Get Started</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white text-center">
+                <h5 class="my-0 fw-normal">Business</h5>
+            </div>
+            <div class="card-body">
+                <h1 class="card-title pricing-card-title">$29.99 <small class="text-muted">/ mo</small></h1>
+                <ul class="list-unstyled mt-3 mb-4">
+                    <li>Unlimited translation minutes</li>
+                    <li>Custom voice creation</li>
+                    <li>Top-tier translation quality</li>
+                    <li>API access</li>
+                </ul>
+                <div class="d-grid">
+                    <a href="{% url 'account_signup' %}" class="btn btn-outline-primary">Contact Sales</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

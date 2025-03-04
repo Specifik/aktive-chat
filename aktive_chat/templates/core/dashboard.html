@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Speech Translator{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Account Summary</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Account Type:</strong> {{ user.account_type|title }}</p>
+                <p><strong>Subscription Status:</strong> {{ user.subscription.status|title }}</p>
+                {% if user.subscription.end_date %}
+                <p><strong>Expires:</strong> {{ user.subscription.end_date|date:"F j, Y" }}</p>
+                {% endif %}
+                <div class="d-grid">
+                    <a href="#" class="btn btn-outline-primary">Manage Subscription</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Usage Statistics</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Minutes Used This Month:</strong> 0 / {{ user.subscription.monthly_minutes }}</p>
+                <div class="progress mb-3">
+                    <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                </div>
+                <p><small class="text-muted">Your subscription resets on the 1st of each month.</small></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Translations</h5>
+                <a href="#" class="btn btn-sm btn-light">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_translations %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Original Text</th>
+                                <th>Language</th>
+                                <th>Translation</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for translation in recent_translations %}
+                            <tr>
+                                <td>{{ translation.original_text|truncatechars:30 }}</td>
+                                <td>{{ translation.target_language }}</td>
+                                <td>{{ translation.translated_text|truncatechars:30 }}</td>
+                                <td>{{ translation.created_at|date:"M d, Y" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-center my-4">You haven't made any translations yet.</p>
+                <div class="text-center">
+                    <a href="{% url 'translator' %}" class="btn btn-primary">Start Translating</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

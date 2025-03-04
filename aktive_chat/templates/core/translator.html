@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Translator - Speech Translator{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Speech Translator</h5>
+            </div>
+            <div class="card-body text-center py-5">
+                <p class="mb-4">This page will be replaced with the React frontend.</p>
+                <p>For now, you can use this placeholder interface:</p>
+                <div class="d-flex justify-content-center mt-4">
+                    <button id="startBtn" class="btn btn-primary me-2">Start Recording</button>
+                    <button id="stopBtn" class="btn btn-danger" disabled>Stop Recording</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Original Speech</h5>
+            </div>
+            <div class="card-body">
+                <div id="originalText" class="border rounded p-3" style="min-height: 200px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Translated Text</h5>
+            </div>
+            <div class="card-body">
+                <div id="translatedText" class="border rounded p-3" style="min-height: 200px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Audio Playback</h5>
+            </div>
+            <div class="card-body">
+                <audio id="audioPlayer" controls class="w-100"></audio>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // This is just a placeholder - React will replace this
+    document.getElementById('startBtn').addEventListener('click', function() {
+        this.disabled = true;
+        document.getElementById('stopBtn').disabled = false;
+        document.getElementById('originalText').innerText = "Listening...";
+    });
+
+    document.getElementById('stopBtn').addEventListener('click', function() {
+        this.disabled = true;
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('originalText').innerText = "This is a sample transcription.";
+        document.getElementById('translatedText').innerText = "This is a sample translation.";
+    });
+</script>
+{% endblock %}

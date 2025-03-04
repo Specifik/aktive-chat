@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Log In - Speech Translator{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card mt-5">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Log In</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_login" class="form-label">Email:</label>
+                        <input type="email" name="login" class="form-control" id="id_login" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_password" class="form-label">Password:</label>
+                        <input type="password" name="password" class="form-control" id="id_password" required>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="remember" class="form-check-input" id="id_remember">
+                        <label class="form-check-label" for="id_remember">Remember Me</label>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Log In</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center">
+                <p class="mb-0">
+                    Don't have an account? <a href="{% url 'account_signup' %}">Sign Up</a>
+                </p>
+                <p class="mt-2 mb-0">
+                    <a href="{% url 'account_reset_password' %}">Forgot Password?</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
