@@ -1,0 +1,77 @@
+speech_translator/                  # Main project directory
+│
+├── manage.py                       # Django management script
+├── requirements.txt                # Project dependencies
+├── .env                            # Environment variables (not in version control)
+│
+├── speech_translator/              # Project settings package
+│   ├── __init__.py
+│   ├── asgi.py                     # ASGI config for WebSockets
+│   ├── settings.py                 # Project settings
+│   ├── urls.py                     # Main URL routing
+│   └── wsgi.py                     # WSGI config
+│
+├── accounts/                       # User accounts app
+│   ├── __init__.py
+│   ├── admin.py                    # Admin panel configuration
+│   ├── apps.py
+│   ├── forms.py                    # Registration, login forms
+│   ├── models.py                   # User models
+│   ├── tests.py
+│   ├── urls.py                     # Account-related URLs
+│   └── views.py                    # Account-related views
+│
+├── core/                           # Core application functionality
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py                   # Translation history, usage models
+│   ├── serializers.py              # API serializers
+│   ├── tests.py
+│   ├── urls.py                     # API endpoints
+│   └── views.py                    # API views
+│
+├── api/                            # API services
+│   ├── __init__.py
+│   ├── assemblyai_service.py       # AssemblyAI integration
+│   ├── elevenlabs_service.py       # ElevenLabs integration
+│   ├── openai_service.py           # OpenAI integration
+│   └── utils.py                    # Utility functions
+│
+├── billing/                        # Billing and subscription app
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py                   # Subscription models
+│   ├── tests.py
+│   ├── urls.py                     # Billing-related URLs
+│   └── views.py                    # Billing-related views
+│
+├── static/                         # Static files (CSS, JS, images)
+│   ├── css/
+│   ├── js/
+│   └── images/
+│
+├── templates/                      # Django HTML templates
+│   ├── base.html                   # Base template
+│   ├── accounts/                   # Account-related templates
+│   │   ├── login.html
+│   │   ├── register.html
+│   │   └── profile.html
+│   ├── core/                       # Main app templates
+│   │   ├── index.html
+│   │   ├── dashboard.html
+│   │   └── translator.html
+│   └── billing/                    # Billing-related templates
+│       ├── plans.html
+│       └── subscription.html
+│
+└── frontend/                       # React frontend (optional)
+    ├── public/
+    ├── src/
+    │   ├── components/
+    │   ├── hooks/
+    │   ├── services/
+    │   └── App.tsx
+    ├── package.json
+    └── tsconfig.json
