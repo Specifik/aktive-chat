@@ -1,57 +1,84 @@
 {% extends "base.html" %}
 
-{% block title %}Translator - Speech Translator{% endblock %}
+{% block title %}Speech Translator{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">Speech Translator</h5>
+<div class="container py-4">
+    <h2 class="mb-4">Real-Time Speech Translator</h2>
+    
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Settings</h5>
+                </div>
+                <div class="card-body">
+                    <form id="translatorForm">
+                        <div class="mb-3">
+                            <label for="targetLanguage" class="form-label">Target Language</label>
+                            <select id="targetLanguage" class="form-select">
+                                <option value="French" selected>French</option>
+                                <option value="Spanish">Spanish</option>
+                                <option value="German">German</option>
+                                <option value="Italian">Italian</option>
+                                <option value="Portuguese">Portuguese</option>
+                                <option value="Japanese">Japanese</option>
+                                <option value="Chinese">Chinese</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="voiceId" class="form-label">Voice ID (Optional)</label>
+                            <input type="text" id="voiceId" class="form-control" placeholder="Enter ElevenLabs Voice ID">
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="button" id="startBtn" class="btn btn-primary">Start Recording</button>
+                            <button type="button" id="stopBtn" class="btn btn-danger" disabled>Stop Recording</button>
+                            <button type="button" id="clearBtn" class="btn btn-secondary">Clear Transcripts</button>
+                        </div>
+                    </form>
+                    
+                    <div class="mt-3">
+                        <span id="statusText" class="text-muted">Ready</span>
+                        <span id="recordingIndicator" class="ms-2 d-none bg-danger d-inline-block rounded-circle" style="width: 10px; height: 10px;"></span>
+                    </div>
+                </div>
             </div>
-            <div class="card-body text-center py-5">
-                <p class="mb-4">This page will be replaced with the React frontend.</p>
-                <p>For now, you can use this placeholder interface:</p>
-                <div class="d-flex justify-content-center mt-4">
-                    <button id="startBtn" class="btn btn-primary me-2">Start Recording</button>
-                    <button id="stopBtn" class="btn btn-danger" disabled>Stop Recording</button>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Audio Playback</h5>
+                </div>
+                <div class="card-body">
+                    <audio id="audioPlayer" controls class="w-100"></audio>
                 </div>
             </div>
         </div>
     </div>
-</div>
-
-<div class="row">
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <h5 class="mb-0">Original Speech</h5>
-            </div>
-            <div class="card-body">
-                <div id="originalText" class="border rounded p-3" style="min-height: 200px;"></div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <h5 class="mb-0">Translated Text</h5>
-            </div>
-            <div class="card-body">
-                <div id="translatedText" class="border rounded p-3" style="min-height: 200px;"></div>
+    
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Original Speech</h5>
+                </div>
+                <div class="card-body">
+                    <div id="originalText" class="transcript-box border rounded p-3" style="height: 300px; overflow-y: auto;"></div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Audio Playback</h5>
-            </div>
-            <div class="card-body">
-                <audio id="audioPlayer" controls class="w-100"></audio>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Translated Text</h5>
+                </div>
+                <div class="card-body">
+                    <div id="translatedText" class="transcript-box border rounded p-3" style="height: 300px; overflow-y: auto;"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -60,18 +87,139 @@
 
 {% block extra_js %}
 <script>
-    // This is just a placeholder - React will replace this
-    document.getElementById('startBtn').addEventListener('click', function() {
-        this.disabled = true;
-        document.getElementById('stopBtn').disabled = false;
-        document.getElementById('originalText').innerText = "Listening...";
+    document.addEventListener('DOMContentLoaded', function() {
+        // DOM elements
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const statusText = document.getElementById('statusText');
+        const recordingIndicator = document.getElementById('recordingIndicator');
+        const originalText = document.getElementById('originalText');
+        const translatedText = document.getElementById('translatedText');
+        const audioPlayer = document.getElementById('audioPlayer');
+        
+        // Initialize variables
+        let isRecording = false;
+        
+        // Button event listeners
+        startBtn.addEventListener('click', function() {
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            statusText.textContent = "Recording...";
+            recordingIndicator.classList.remove('d-none');
+            
+            // Add simulated transcription for demo purposes
+            setTimeout(() => {
+                originalText.innerHTML += '<div class="mb-2 pb-2 border-bottom">This is a sample transcription.</div>';
+                
+                // Simulate translation
+                setTimeout(() => {
+                    translatedText.innerHTML += '<div class="mb-2 pb-2 border-bottom">Voici un exemple de transcription.</div>';
+                }, 1000);
+            }, 2000);
+        });
+        
+        stopBtn.addEventListener('click', function() {
+            stopBtn.disabled = true;
+            startBtn.disabled = false;
+            statusText.textContent = "Ready";
+            recordingIndicator.classList.add('d-none');
+        });
+        
+        clearBtn.addEventListener('click', function() {
+            originalText.innerHTML = '';
+            translatedText.innerHTML = '';
+            audioPlayer.src = '';
+        });
     });
 
-    document.getElementById('stopBtn').addEventListener('click', function() {
-        this.disabled = true;
-        document.getElementById('startBtn').disabled = false;
-        document.getElementById('originalText').innerText = "This is a sample transcription.";
-        document.getElementById('translatedText').innerText = "This is a sample translation.";
+    // Add this to your existing JavaScript in translator.html
+function translateText(text, language) {
+    fetch('/api/translate/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({
+            text: text,
+            language: language,
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.translation) {
+            document.getElementById('translatedText').innerHTML += 
+                `<div class="mb-2 pb-2 border-bottom">${data.translation}</div>`;
+                
+            generateSpeech(data.translation);
+        }
+    })
+    .catch(error => {
+        console.error('Error translating text:', error);
     });
+}
+
+function generateSpeech(text) {
+    const voiceId = document.getElementById('voiceId').value;
+    
+    fetch('/api/text-to-speech/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({
+            text: text,
+            voiceId: voiceId,
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.audioUrl) {
+            document.getElementById('audioPlayer').src = data.audioUrl;
+            document.getElementById('audioPlayer').play();
+        }
+    })
+    .catch(error => {
+        console.error('Error generating speech:', error);
+    });
+}
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
 </script>
 {% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Animation for recording indicator */
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.4; }
+        100% { opacity: 1; }
+    }
+    
+    #recordingIndicator {
+        animation: pulse 1.5s infinite;
+    }
+    
+    .transcript-box {
+        font-size: 0.95rem;
+    }
+</style>
+{% endblock %}
+

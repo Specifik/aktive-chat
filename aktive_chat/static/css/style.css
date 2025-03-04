@@ -1,0 +1,19 @@
+/* Animation for recording indicator */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.4; }
+    100% { opacity: 1; }
+}
+
+#recordingIndicator {
+    animation: pulse 1.5s infinite;
+}
+
+.transcript-box {
+    font-size: 0.95rem;
+}
+
+.audio-player audio {
+    width: 100%;
+    border-radius: 0.375rem;
+}
