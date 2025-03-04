@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
+    'channels',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -52,9 +53,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
-ROOT_URLCONF = 'speech_translator.urls'
+ROOT_URLCONF = 'aktive_chat.urls'
 
 TEMPLATES = [
     {
@@ -72,7 +74,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'speech_translator.wsgi.application'
+WSGI_APPLICATION = 'aktive_chat.wsgi.application'
 
 # Database
 DATABASES = {
@@ -132,14 +134,8 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-# Add to INSTALLED_APPS
-INSTALLED_APPS = [
-    # ... existing apps
-    'channels',
-]
-
 # Add Channels configuration
-ASGI_APPLICATION = 'speech_translator.asgi.application'
+ASGI_APPLICATION = 'aktive_chat.asgi.application'
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
@@ -154,7 +150,7 @@ CHANNEL_LAYERS = {
 SITE_ID = 1
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 
 # API Keys (in production, use environment variables)
