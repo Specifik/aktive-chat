@@ -1,0 +1,1 @@
+aktive chat speech translator
