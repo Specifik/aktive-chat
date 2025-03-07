@@ -1,225 +1,79 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Real-time Speech Translator</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">Real-Time Speech Translator</h1>
 
-{% block title %}Speech Translator{% endblock %}
+        <!-- Button to toggle listening -->
+        <button id="listen-button" class="listen-button">Start Listening</button>
 
-{% block content %}
-<div class="container py-4">
-    <h2 class="mb-4">Real-Time Speech Translator</h2>
-    
-    <div class="row mb-4">
-        <div class="col-md-6">
+        <!-- Language selection -->
+        <div class="language-selection">
+            <label for="input-language">Input Language</label>
+            <select id="input-language">
+                <option value="de">German</option>
+                <option value="en">English</option>
+            </select>
+
+            <label for="output-language">Output Language</label>
+            <select id="output-language">
+                <option value="en">English</option>
+                <option value="es">Spanish</option>
+                <option value="fr">French</option>
+                <option value="it">Italian</option>
+                <option value="pt">Portuguese</option>
+                <option value="ru">Russian</option>
+                <option value="zh">Chinese</option>
+                <option value="ja">Japanese</option>
+                <option value="ko">Korean</option>
+            </select>
+        </div>
+
+        <!-- Text Display -->
+        <div class="text-display">
             <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Settings</h5>
-                </div>
-                <div class="card-body">
-                    <form id="translatorForm">
-                        <div class="mb-3">
-                            <label for="targetLanguage" class="form-label">Target Language</label>
-                            <select id="targetLanguage" class="form-select">
-                                <option value="French" selected>French</option>
-                                <option value="Spanish">Spanish</option>
-                                <option value="German">German</option>
-                                <option value="Italian">Italian</option>
-                                <option value="Portuguese">Portuguese</option>
-                                <option value="Japanese">Japanese</option>
-                                <option value="Chinese">Chinese</option>
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="voiceId" class="form-label">Voice ID (Optional)</label>
-                            <input type="text" id="voiceId" class="form-control" placeholder="Enter ElevenLabs Voice ID">
-                        </div>
-                        
-                        <div class="d-grid gap-2">
-                            <button type="button" id="startBtn" class="btn btn-primary">Start Recording</button>
-                            <button type="button" id="stopBtn" class="btn btn-danger" disabled>Stop Recording</button>
-                            <button type="button" id="clearBtn" class="btn btn-secondary">Clear Transcripts</button>
-                        </div>
-                    </form>
-                    
-                    <div class="mt-3">
-                        <span id="statusText" class="text-muted">Ready</span>
-                        <span id="recordingIndicator" class="ms-2 d-none bg-danger d-inline-block rounded-circle" style="width: 10px; height: 10px;"></span>
-                    </div>
-                </div>
+                <h3 id="original-label">Original (German)</h3>
+                <p id="original-text">Speak to see text here...</p>
+            </div>
+            <div class="card">
+                <h3 id="translated-label">Translated (English)</h3>
+                <p id="translated-text">Translation will appear here...</p>
             </div>
         </div>
-        
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Audio Playback</h5>
-                </div>
-                <div class="card-body">
-                    <audio id="audioPlayer" controls class="w-100"></audio>
-                </div>
-            </div>
+
+        <!-- Control buttons -->
+        <button id="clear-button" class="clear-button">Clear Text</button>
+        <button id="swap-button" class="swap-button">Swap Languages</button>
+
+        <!-- Error and success messages -->
+        <div id="error-message" class="message error"></div>
+        <div id="success-message" class="message success"></div>
+
+        <!-- Custom Font Upload -->
+        <div class="font-upload">
+            <input type="file" id="font-upload" accept=".ttf,.otf,.woff,.woff2">
         </div>
-    </div>
-    
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Original Speech</h5>
-                </div>
-                <div class="card-body">
-                    <div id="originalText" class="transcript-box border rounded p-3" style="height: 300px; overflow-y: auto;"></div>
-                </div>
-            </div>
+
+        <!-- Font settings -->
+        <div class="font-settings">
+            <label for="font-size">Font Size: <span id="font-size-value">16</span>px</label>
+            <input type="range" id="font-size" min="12" max="32" step="1" value="16">
         </div>
-        
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Translated Text</h5>
-                </div>
-                <div class="card-body">
-                    <div id="translatedText" class="transcript-box border rounded p-3" style="height: 300px; overflow-y: auto;"></div>
-                </div>
-            </div>
+
+        <!-- Live Text Preview -->
+        <div class="live-preview">
+            <h3>Live Text Overlay Preview</h3>
+            <p id="live-text" class="live-text">Translated text will appear here...</p>
         </div>
     </div>
-</div>
-{% endblock %}
 
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // DOM elements
-        const startBtn = document.getElementById('startBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const clearBtn = document.getElementById('clearBtn');
-        const statusText = document.getElementById('statusText');
-        const recordingIndicator = document.getElementById('recordingIndicator');
-        const originalText = document.getElementById('originalText');
-        const translatedText = document.getElementById('translatedText');
-        const audioPlayer = document.getElementById('audioPlayer');
-        
-        // Initialize variables
-        let isRecording = false;
-        
-        // Button event listeners
-        startBtn.addEventListener('click', function() {
-            startBtn.disabled = true;
-            stopBtn.disabled = false;
-            statusText.textContent = "Recording...";
-            recordingIndicator.classList.remove('d-none');
-            
-            // Add simulated transcription for demo purposes
-            setTimeout(() => {
-                originalText.innerHTML += '<div class="mb-2 pb-2 border-bottom">This is a sample transcription.</div>';
-                
-                // Simulate translation
-                setTimeout(() => {
-                    translatedText.innerHTML += '<div class="mb-2 pb-2 border-bottom">Voici un exemple de transcription.</div>';
-                }, 1000);
-            }, 2000);
-        });
-        
-        stopBtn.addEventListener('click', function() {
-            stopBtn.disabled = true;
-            startBtn.disabled = false;
-            statusText.textContent = "Ready";
-            recordingIndicator.classList.add('d-none');
-        });
-        
-        clearBtn.addEventListener('click', function() {
-            originalText.innerHTML = '';
-            translatedText.innerHTML = '';
-            audioPlayer.src = '';
-        });
-    });
-
-    // Add this to your existing JavaScript in translator.html
-function translateText(text, language) {
-    fetch('/api/translate/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken'),
-        },
-        body: JSON.stringify({
-            text: text,
-            language: language,
-        }),
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.translation) {
-            document.getElementById('translatedText').innerHTML += 
-                `<div class="mb-2 pb-2 border-bottom">${data.translation}</div>`;
-                
-            generateSpeech(data.translation);
-        }
-    })
-    .catch(error => {
-        console.error('Error translating text:', error);
-    });
-}
-
-function generateSpeech(text) {
-    const voiceId = document.getElementById('voiceId').value;
-    
-    fetch('/api/text-to-speech/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken'),
-        },
-        body: JSON.stringify({
-            text: text,
-            voiceId: voiceId,
-        }),
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.audioUrl) {
-            document.getElementById('audioPlayer').src = data.audioUrl;
-            document.getElementById('audioPlayer').play();
-        }
-    })
-    .catch(error => {
-        console.error('Error generating speech:', error);
-    });
-}
-
-// Helper function to get CSRF token
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-</script>
-{% endblock %}
-
-{% block extra_css %}
-<style>
-    /* Animation for recording indicator */
-    @keyframes pulse {
-        0% { opacity: 1; }
-        50% { opacity: 0.4; }
-        100% { opacity: 1; }
-    }
-    
-    #recordingIndicator {
-        animation: pulse 1.5s infinite;
-    }
-    
-    .transcript-box {
-        font-size: 0.95rem;
-    }
-</style>
-{% endblock %}
-
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
