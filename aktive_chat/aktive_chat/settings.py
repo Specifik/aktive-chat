@@ -79,19 +79,19 @@ WSGI_APPLICATION = 'aktive_chat.wsgi.application'
 # Database
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',  # For development; use PostgreSQL in production
+        'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
-# If DATABASE_URL is set, use that instead (for production)
-if os.getenv('DATABASE_URL'):
-    import dj_database_url
-    DATABASES['default'] = dj_database_url.config(
-        default=os.getenv('DATABASE_URL'),
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
+# Comment out this condition to prevent using PostgreSQL in development
+# If os.getenv('DATABASE_URL'):
+#     import dj_database_url
+#     DATABASES['default'] = dj_database_url.config(
+#         default=os.getenv('DATABASE_URL'),
+#         conn_max_age=600,
+#         conn_health_checks=True,
+#     )
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -137,11 +137,14 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:8000',  # Django development server
 ]
 
-# Django AllAuth settings
+# Authentication settings
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
+    'django.contrib.auth.backends.ModelBackend',  # Default Django backend
+    'allauth.account.auth_backends.AuthenticationBackend',  # allauth backend
 ]
+
+LOGIN_REDIRECT_URL = '/dashboard/'  # Redirect after login
+LOGIN_URL = '/accounts/login/'  # Login page URL
 
 # Add Channels configuration
 ASGI_APPLICATION = 'aktive_chat.asgi.application'
