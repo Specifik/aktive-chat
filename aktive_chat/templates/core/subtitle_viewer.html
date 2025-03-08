@@ -1,0 +1,499 @@
+{% extends "base.html" %}
+
+{% block title %}{{ session.title }} - Subtitles Viewer{% endblock %}
+
+{% block extra_css %}
+<style>
+    body.subtitle-viewer {
+        background-color: #000;
+        color: #fff;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+    
+    .subtitle-container {
+        position: fixed;
+        width: 100%;
+        text-align: center;
+        padding: 20px;
+        z-index: 1000;
+        transition: all 0.3s ease;
+    }
+    
+    .subtitle-container.position-bottom {
+        bottom: 50px;
+    }
+    
+    .subtitle-container.position-top {
+        top: 50px;
+    }
+    
+    .subtitle-container.position-middle {
+        top: 50%;
+        transform: translateY(-50%);
+    }
+    
+    .subtitle-text {
+        display: inline-block;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-family: var(--font-family, 'Arial, sans-serif');
+        font-size: var(--font-size, 24px);
+        color: var(--font-color, #fff);
+        background-color: var(--bg-color, rgba(0, 0, 0, 0.7));
+        max-width: 80%;
+        margin: 0 auto;
+        text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+    }
+    
+    .controls-panel {
+        position: fixed;
+        top: 0;
+        right: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        padding: 10px;
+        border-bottom-left-radius: 5px;
+        z-index: 1010;
+        transition: opacity 0.3s ease;
+    }
+    
+    .controls-panel:hover {
+        opacity: 1;
+    }
+    
+    .controls-panel .btn {
+        font-size: 12px;
+        padding: 3px 8px;
+    }
+    
+    .settings-panel {
+        position: fixed;
+        top: 50px;
+        right: 10px;
+        background-color: rgba(0, 0, 0, 0.8);
+        padding: 15px;
+        border-radius: 5px;
+        z-index: 1020;
+        width: 250px;
+        display: none;
+    }
+    
+    .language-selector {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .font-selector {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .history-container {
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        width: 300px;
+        max-height: 200px;
+        overflow-y: auto;
+        background-color: rgba(0, 0, 0, 0.7);
+        border-radius: 5px;
+        padding: 10px;
+        font-size: 12px;
+        display: none;
+        z-index: 1005;
+    }
+    
+    .history-item {
+        margin-bottom: 8px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .history-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    
+    @media (max-width: 768px) {
+        .subtitle-text {
+            font-size: calc(var(--font-size, 24px) * 0.8);
+            max-width: 95%;
+        }
+        
+        .controls-panel {
+            opacity: 0.3;
+        }
+        
+        .settings-panel, .history-container {
+            width: 90%;
+            left: 5%;
+            right: 5%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="subtitle-container position-{{ settings.position|default:'bottom' }}">
+    <div class="subtitle-text" id="subtitleText"></div>
+</div>
+
+<div class="controls-panel">
+    <button id="settingsBtn" class="btn btn-sm btn-outline-light me-1">
+        <i class="fas fa-cog"></i>
+    </button>
+    <button id="historyBtn" class="btn btn-sm btn-outline-light me-1">
+        <i class="fas fa-history"></i>
+    </button>
+    <button id="fullscreenBtn" class="btn btn-sm btn-outline-light">
+        <i class="fas fa-expand"></i>
+    </button>
+</div>
+
+<div class="settings-panel" id="settingsPanel">
+    <h6 class="text-light mb-3">Settings</h6>
+    
+    {% if session.allow_language_selection %}
+    <div class="mb-3">
+        <label for="languageSelector" class="form-label text-light">Language</label>
+        <select id="languageSelector" class="form-select language-selector">
+            {% for lang in languages %}
+            <option value="{{ lang.code }}" {% if lang.code == default_language %}selected{% endif %}>{{ lang.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endif %}
+    
+    {% if session.allow_font_customization %}
+    <div class="mb-3">
+        <label for="fontSelector" class="form-label text-light">Font</label>
+        <select id="fontSelector" class="form-select font-selector">
+            <option value="default" {% if settings.font_family == 'default' %}selected{% endif %}>Default</option>
+            <option value="arial" {% if settings.font_family == 'arial' %}selected{% endif %}>Arial</option>
+            <option value="times" {% if settings.font_family == 'times' %}selected{% endif %}>Times New Roman</option>
+            <option value="roboto" {% if settings.font_family == 'roboto' %}selected{% endif %}>Roboto</option>
+            <option value="opensans" {% if settings.font_family == 'opensans' %}selected{% endif %}>Open Sans</option>
+            <option value="montserrat" {% if settings.font_family == 'montserrat' %}selected{% endif %}>Montserrat</option>
+        </select>
+    </div>
+    
+    <div class="mb-3">
+        <label for="fontSizeRange" class="form-label text-light">Font Size: <span id="fontSizeValue">{{ settings.font_size }}</span>px</label>
+        <input type="range" class="form-range" id="fontSizeRange" min="16" max="40" step="1" value="{{ settings.font_size }}">
+    </div>
+    
+    <div class="mb-3">
+        <label for="positionSelector" class="form-label text-light">Position</label>
+        <select id="positionSelector" class="form-select">
+            <option value="bottom" {% if settings.position == 'bottom' %}selected{% endif %}>Bottom</option>
+            <option value="top" {% if settings.position == 'top' %}selected{% endif %}>Top</option>
+            <option value="middle" {% if settings.position == 'middle' %}selected{% endif %}>Middle</option>
+        </select>
+    </div>
+    
+    <div class="mb-3">
+        <label for="bgOpacityRange" class="form-label text-light">Background Opacity: <span id="bgOpacityValue">{{ settings.background_opacity|floatformat:2 }}</span></label>
+        <input type="range" class="form-range" id="bgOpacityRange" min="0" max="1" step="0.05" value="{{ settings.background_opacity }}">
+    </div>
+    {% endif %}
+    
+    <button id="closeSettingsBtn" class="btn btn-sm btn-secondary w-100">Close</button>
+</div>
+
+<div class="history-container" id="historyContainer">
+    <h6 class="text-light mb-3">Recent Translations</h6>
+    <div id="historyItems"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // DOM elements
+    const subtitleContainer = document.querySelector('.subtitle-container');
+    const subtitleText = document.getElementById('subtitleText');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const historyBtn = document.getElementById('historyBtn');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const historyContainer = document.getElementById('historyContainer');
+    const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+    
+    // Settings elements
+    const languageSelector = document.getElementById('languageSelector');
+    const fontSelector = document.getElementById('fontSelector');
+    const fontSizeRange = document.getElementById('fontSizeRange');
+    const fontSizeValue = document.getElementById('fontSizeValue');
+    const positionSelector = document.getElementById('positionSelector');
+    const bgOpacityRange = document.getElementById('bgOpacityRange');
+    const bgOpacityValue = document.getElementById('bgOpacityValue');
+    
+    // Subtitle history
+    const historyItems = document.getElementById('historyItems');
+    const subtitleHistory = [];
+    const MAX_HISTORY = 10;
+    
+    // Session info
+    const sessionToken = '{{ session.access_token }}';
+    
+    // Initialize WebSocket
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ws/subtitle-viewer/${sessionToken}/`;
+    let socket = null;
+    
+    function connectWebSocket() {
+        socket = new WebSocket(wsUrl);
+        
+        socket.onopen = function(e) {
+            console.log('WebSocket connection established');
+            
+            // Send initial language preference if available
+            if (languageSelector) {
+                socket.send(JSON.stringify({
+                    'command': 'set_language',
+                    'language': languageSelector.value
+                }));
+            }
+        };
+        
+        socket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            
+            if (data.type === 'translation') {
+                // Update subtitle text
+                subtitleText.textContent = data.translation.text;
+                
+                // Add to history
+                addToHistory(data.original.text, data.translation.text);
+                
+                // Play audio if available
+                if (data.audio_url) {
+                    const audio = new Audio(data.audio_url);
+                    audio.play();
+                }
+            } else if (data.type === 'session_info') {
+                // Update session information (e.g., available languages)
+                updateSessionInfo(data);
+            } else if (data.type === 'error') {
+                console.error('Error:', data.message);
+            }
+        };
+        
+        socket.onclose = function(e) {
+            console.log('WebSocket connection closed. Attempting to reconnect in 5 seconds...');
+            setTimeout(connectWebSocket, 5000);
+        };
+        
+        socket.onerror = function(e) {
+            console.error('WebSocket error:', e);
+        };
+    }
+    
+    function addToHistory(original, translation) {
+        // Add to history array
+        subtitleHistory.unshift({
+            original: original,
+            translation: translation,
+            timestamp: new Date()
+        });
+        
+        // Limit history size
+        if (subtitleHistory.length > MAX_HISTORY) {
+            subtitleHistory.pop();
+        }
+        
+        // Update history display
+        updateHistoryDisplay();
+    }
+    
+    function updateHistoryDisplay() {
+        historyItems.innerHTML = '';
+        
+        subtitleHistory.forEach(item => {
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+            
+            const timeString = item.timestamp.toLocaleTimeString();
+            
+            historyItem.innerHTML = `
+                <div class="text-muted small">${timeString}</div>
+                <div class="text-light small">${item.translation}</div>
+                <div class="text-secondary smaller">${item.original}</div>
+            `;
+            
+            historyItems.appendChild(historyItem);
+        });
+    }
+    
+    function updateSessionInfo(data) {
+        // Update language options if provided
+        if (data.languages && languageSelector) {
+            languageSelector.innerHTML = '';
+            
+            data.languages.forEach(lang => {
+                const option = document.createElement('option');
+                option.value = lang.code;
+                option.textContent = lang.name;
+                
+                if (lang.code === data.current_language) {
+                    option.selected = true;
+                }
+                
+                languageSelector.appendChild(option);
+            });
+        }
+    }
+    
+    function updateSubtitleStyle() {
+        // Get font settings
+        const fontFamily = fontSelector ? fontSelector.value : '{{ settings.font_family }}';
+        const fontSize = fontSizeRange ? fontSizeRange.value : '{{ settings.font_size }}';
+        const bgOpacity = bgOpacityRange ? bgOpacityRange.value : '{{ settings.background_opacity }}';
+        
+        // Create RGB background color with opacity
+        const bgColor = `rgba(0, 0, 0, ${bgOpacity})`;
+        
+        // Apply CSS variables
+        document.documentElement.style.setProperty('--font-family', getFontFamily(fontFamily));
+        document.documentElement.style.setProperty('--font-size', `${fontSize}px`);
+        document.documentElement.style.setProperty('--bg-color', bgColor);
+    }
+    
+    function getFontFamily(value) {
+        switch (value) {
+            case 'arial':
+                return 'Arial, sans-serif';
+            case 'times':
+                return 'Times New Roman, serif';
+            case 'roboto':
+                return 'Roboto, sans-serif';
+            case 'opensans':
+                return 'Open Sans, sans-serif';
+            case 'montserrat':
+                return 'Montserrat, sans-serif';
+            default:
+                return 'Arial, sans-serif';
+        }
+    }
+    
+    // Event listeners
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', function() {
+            settingsPanel.style.display = settingsPanel.style.display === 'none' ? 'block' : 'none';
+            historyContainer.style.display = 'none';
+        });
+    }
+    
+    if (historyBtn) {
+        historyBtn.addEventListener('click', function() {
+            historyContainer.style.display = historyContainer.style.display === 'none' ? 'block' : 'none';
+            settingsPanel.style.display = 'none';
+        });
+    }
+    
+    if (fullscreenBtn) {
+        fullscreenBtn.addEventListener('click', function() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        });
+    }
+    
+    if (closeSettingsBtn) {
+        closeSettingsBtn.addEventListener('click', function() {
+            settingsPanel.style.display = 'none';
+        });
+    }
+    
+    // Font settings listeners
+    if (fontSelector) {
+        fontSelector.addEventListener('change', function() {
+            updateSubtitleStyle();
+            
+            // Notify server about font change
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    'command': 'update_settings',
+                    'font_family': fontSelector.value
+                }));
+            }
+        });
+    }
+    
+    if (fontSizeRange) {
+        fontSizeRange.addEventListener('input', function() {
+            fontSizeValue.textContent = fontSizeRange.value;
+            updateSubtitleStyle();
+        });
+        
+        fontSizeRange.addEventListener('change', function() {
+            // Notify server about font size change
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    'command': 'update_settings',
+                    'font_size': parseInt(fontSizeRange.value)
+                }));
+            }
+        });
+    }
+    
+    if (positionSelector) {
+        positionSelector.addEventListener('change', function() {
+            // Update position class
+            subtitleContainer.className = 'subtitle-container position-' + positionSelector.value;
+            
+            // Notify server about position change
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    'command': 'update_settings',
+                    'position': positionSelector.value
+                }));
+            }
+        });
+    }
+    
+    if (bgOpacityRange) {
+        bgOpacityRange.addEventListener('input', function() {
+            bgOpacityValue.textContent = parseFloat(bgOpacityRange.value).toFixed(2);
+            updateSubtitleStyle();
+        });
+        
+        bgOpacityRange.addEventListener('change', function() {
+            // Notify server about opacity change
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    'command': 'update_settings',
+                    'background_opacity': parseFloat(bgOpacityRange.value)
+                }));
+            }
+        });
+    }
+    
+    if (languageSelector) {
+        languageSelector.addEventListener('change', function() {
+            // Notify server about language change
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    'command': 'set_language',
+                    'language': languageSelector.value
+                }));
+            }
+        });
+    }
+    
+    // Initialize
+    updateSubtitleStyle();
+    connectWebSocket();
+    
+    // Add body class for styling
+    document.body.classList.add('subtitle-viewer');
+});
+</script>
+{% endblock %}

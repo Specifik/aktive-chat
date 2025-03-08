@@ -1,0 +1,60 @@
+graph TD
+    subgraph "Frontend"
+        UI[User Interface]
+        WebSocket["WebSocket Client"]
+        AudioRecorder["Audio Recorder"]
+        SubtitleViewer["Subtitle Viewer"]
+        QRCode["QR Code Scanner"]
+    end
+
+    subgraph "Django Backend"
+        Django["Django Web Server"]
+        Channels["Django Channels"]
+        WSConsumer["WebSocket Consumers"]
+        Auth["Authentication"]
+        
+        subgraph "Models"
+            User["User Model"]
+            Subscription["Subscription Model"]
+            Settings["User Settings"]
+            SubtitleSettings["Subtitle Settings"]
+            SharedSession["Shared Session"]
+            TranslationHistory["Translation History"]
+        end
+    end
+
+    subgraph "Services"
+        STT["Faster Whisper\nSpeech-to-Text"]
+        Translation["Google Translate / DeepL\nTranslation"]
+        TTS["ElevenLabs\nText-to-Speech"]
+    end
+
+    subgraph "Storage"
+        DB["Database"]
+        MediaStorage["Media Storage\n(Audio Files)"]
+    end
+
+    %% Frontend to Backend connections
+    UI --> Django
+    WebSocket --> Channels
+    AudioRecorder --> WebSocket
+    
+    %% Backend internal connections
+    Django --> Auth
+    Django --> Models
+    Channels --> WSConsumer
+    WSConsumer --> Models
+    
+    %% Backend to Services connections
+    WSConsumer --> STT
+    STT --> Translation
+    Translation --> TTS
+    
+    %% Storage connections
+    Models --> DB
+    TTS --> MediaStorage
+    
+    %% Subtitle viewer connections
+    SubtitleViewer --> Channels
+    QRCode --> SubtitleViewer
+    SharedSession --> SubtitleViewer

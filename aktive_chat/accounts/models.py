@@ -57,8 +57,7 @@ class Subscription(models.Model):
 
 class UserSettings(models.Model):
     """User preferences and settings"""
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='settings')
-    
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='account_settings')    
     # Default preferences
     default_language = models.CharField(max_length=50, default='French')
     default_voice_id = models.CharField(max_length=100, blank=True, null=True)

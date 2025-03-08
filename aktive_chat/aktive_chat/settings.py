@@ -84,6 +84,15 @@ DATABASES = {
     }
 }
 
+# If DATABASE_URL is set, use that instead (for production)
+if os.getenv('DATABASE_URL'):
+    import dj_database_url
+    DATABASES['default'] = dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -96,7 +105,6 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
-USE_L10N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
@@ -126,6 +134,7 @@ REST_FRAMEWORK = {
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',  # React development server
+    'http://localhost:8000',  # Django development server
 ]
 
 # Django AllAuth settings
@@ -142,13 +151,53 @@ CHANNEL_LAYERS = {
         # For production, use Redis:
         # 'BACKEND': 'channels_redis.core.RedisChannelLayer',
         # 'CONFIG': {
-        #     "hosts": [('127.0.0.1', 6379)],
+        #     "hosts": [(os.getenv('REDIS_HOST', '127.0.0.1'), 
+        #                int(os.getenv('REDIS_PORT', 6379)))],
         # },
     },
 }
 
+# Site ID required for django-allauth
 SITE_ID = 1
+
+# AllAuth settings
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_LOGIN_METHODS = {'email'}
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_VERIFICATION = 'optional'  # Set to 'mandatory' in production
+ACCOUNT_LOGOUT_ON_GET = True  # Allows logout without confirmation
+
+# Email settings
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    # Configure real email backend for production
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = os.getenv('EMAIL_HOST', '')
+    EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+    EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+    EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+    EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+
+# Service-specific settings
+ELEVENLABS_API_KEY = os.getenv('ELEVENLABS_API_KEY', '')
+DEEPL_API_KEY = os.getenv('DEEPL_API_KEY', '')
+DEEPL_FREE_API = os.getenv('DEEPL_FREE_API', 'True') == 'True'
+
+# Whisper model settings
+WHISPER_MODEL_SIZE = os.getenv('WHISPER_MODEL_SIZE', 'small')
+
+# Site domain for absolute URLs (used for QR codes)
+SITE_DOMAIN = os.getenv('SITE_DOMAIN', 'localhost:8000')
+
+# Custom file storage settings
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+if os.getenv('AWS_ACCESS_KEY_ID'):
+    # If AWS credentials are provided, use S3 for storage
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+    AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'us-east-1')
+    AWS_DEFAULT_ACL = 'public-read'
+    AWS_S3_CUSTOM_DOMAIN = os.getenv('AWS_S3_CUSTOM_DOMAIN', f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com')

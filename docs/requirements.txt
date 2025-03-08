@@ -1,0 +1,42 @@
+# Core Django Dependencies
+Django==5.1.6
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+django-allauth==0.61.1
+dj-database-url==2.1.0
+
+# Channels for WebSockets
+channels==4.0.0
+channels-redis==4.1.0
+
+# Speech Recognition
+faster-whisper==1.0.0
+torch==2.2.0
+torchaudio==2.2.0
+
+# Translation Services
+google-cloud-translate==3.15.4
+google-auth==2.27.0
+requests==2.31.0
+
+# Text-to-Speech
+elevenlabs==1.53.0
+
+# QR Code Generation
+qrcode==7.4.2
+Pillow==10.2.0
+
+# Utilities
+python-dotenv==1.0.1
+uuid==1.30
+html==1.13
+
+# Development Tools
+black==24.2.0
+flake8==7.0.0
+pytest==7.4.3
+pytest-django==4.7.0
+
+# Production Dependencies
+gunicorn==21.2.0
+whitenoise==6.6.0
