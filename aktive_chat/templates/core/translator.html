@@ -5,24 +5,820 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Real-time Speech Translator</title>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #D2FB01;
+            --primary-light: #E4FF4D;
+            --primary-dark: #B8D800;
+            --secondary-color: #CCCCCC;
+            --background-color: #1A1A1A;
+            --card-background: #2A2A2A;
+            --text-primary: #F9FAFB;
+            --text-secondary: #E5E7EB;
+            --text-tertiary: #9CA3AF;
+            --border-color: #3A3A3A;
+            --border-light: #4A4A4A;
+            --success-color: #D2FB01;
+            --error-color: #EF4444;
+            --warning-color: #F59E0B;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+            --inner-shadow-sm: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+            --inner-shadow-md: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 0.75rem;
+            --spacing-base: 1rem;
+            --spacing-lg: 1.25rem;
+            --spacing-xl: 1.5rem;
+            --spacing-2xl: 2rem;
+            --spacing-3xl: 2.5rem;
+            --transition-fast: 150ms ease;
+            --transition-normal: 250ms ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: var(--spacing-base) auto;
+            padding: 0 var(--spacing-base);
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: var(--spacing-base);
+        }
+
+        .title {
+            grid-column: span 6;
+            text-align: left;
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0;
+            letter-spacing: -0.025em;
+            display: flex;
+            align-items: center;
+        }
+
+        .main-controls {
+            grid-column: 7 / span 6;
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--spacing-base);
+            margin-bottom: var(--spacing-base);
+            position: sticky;
+            top: var(--spacing-base);
+            z-index: 100;
+            background: transparent;
+            padding: 0;
+            border-radius: var(--radius-lg);
+            backdrop-filter: none;
+        }
+
+        .listen-button, .test-button {
+            border: none;
+            padding: var(--spacing-md) var(--spacing-xl);
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            position: relative;
+        }
+
+        .listen-button {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: #333333;
+            border: 1px solid var(--primary-dark);
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(210, 251, 1, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(210, 251, 1, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(210, 251, 1, 0);
+            }
+        }
+
+        .listen-button.recording {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, #9CB600 100%);
+            animation: pulse 2s infinite;
+        }
+
+        .listen-button:hover {
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
+            transform: translateY(-1px);
+        }
+
+        .listen-button:active {
+            transform: translateY(0);
+        }
+
+        .test-button {
+            background: linear-gradient(135deg, #3D3D3D 0%, #2D2D2D 100%);
+            color: var(--text-primary);
+            border: 1px solid #222222;
+        }
+
+        .test-button:hover {
+            background: linear-gradient(135deg, #4D4D4D 0%, #3D3D3D 100%);
+            transform: translateY(-1px);
+        }
+
+        .test-button:active {
+            transform: translateY(0);
+            background: linear-gradient(135deg, #2D2D2D 0%, #222222 100%);
+        }
+
+        .listen-button i, .test-button i {
+            font-size: 1.1rem;
+        }
+
+        .bento-box {
+            background-color: var(--card-background);
+            padding: var(--spacing-base);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+        }
+
+        .bento-box h3 {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: var(--spacing-base);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: var(--spacing-sm);
+            font-weight: 600;
+        }
+
+        .bento-box h3 i {
+            color: var(--primary-color);
+        }
+
+        .bento-grid {
+            grid-column: span 12;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: var(--spacing-base);
+            margin-bottom: var(--spacing-base);
+        }
+
+        .bento-box.languages {
+            grid-column: span 3;
+        }
+
+        .bento-box.audio {
+            grid-column: span 6;
+        }
+
+        .bento-box.audio h3 {
+            margin-bottom: var(--spacing-base);
+        }
+
+        .audio-settings-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: auto auto auto;
+            gap: var(--spacing-base);
+        }
+
+        .audio-settings-grid .top-left {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .audio-settings-grid .top-right {
+            grid-column: 2;
+            grid-row: 1;
+        }
+
+        .audio-settings-grid .middle-left {
+            grid-column: 1;
+            grid-row: 2;
+        }
+
+        .audio-settings-grid .middle-right {
+            grid-column: 2;
+            grid-row: 2;
+        }
+
+        .audio-settings-grid .bottom-left {
+            grid-column: 1;
+            grid-row: 3;
+        }
+
+        .audio-settings-grid .bottom-right {
+            grid-column: 2;
+            grid-row: 3;
+        }
+
+        .bento-box.font-settings {
+            grid-column: span 3;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-base);
+        }
+
+        .language-group, .device-group {
+            margin-bottom: var(--spacing-base);
+        }
+
+        .language-group:last-child, .device-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .language-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+        }
+
+        .device-group {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: var(--spacing-base);
+            margin-bottom: 0;
+            align-items: center;
+        }
+
+        .device-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .device-group label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            white-space: nowrap;
+        }
+
+        .volume-control {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: var(--spacing-sm);
+            align-items: center;
+        }
+
+        label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .select-container {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .select-container select {
+            width: 100%;
+            padding: var(--spacing-sm) var(--spacing-base);
+            padding-right: var(--spacing-2xl);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            background-color: var(--card-background);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            color: var(--text-primary);
+        }
+
+        .select-container select:hover {
+            border-color: #666666;
+        }
+
+        .select-container select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(210, 251, 1, 0.2);
+        }
+
+        .select-container::after {
+            content: "\f107";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            position: absolute;
+            right: var(--spacing-base);
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888888;
+            pointer-events: none;
+            transition: all var(--transition-normal);
+        }
+
+        .select-container:hover::after {
+            color: #AAAAAA;
+        }
+
+        .text-display {
+            grid-column: span 12;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--spacing-base);
+            margin-bottom: var(--spacing-base);
+        }
+
+        .card {
+            background-color: var(--card-background);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+        }
+
+        .card h3 {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: var(--spacing-base);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-weight: 600;
+        }
+
+        .card p {
+            min-height: 100px;
+            padding: var(--spacing-base);
+            background-color: var(--background-color);
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            border: 1px solid var(--border-color);
+        }
+
+        .message {
+            padding: var(--spacing-base);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-base);
+            display: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .error {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #FCA5A5;
+            border: 1px solid rgba(239, 68, 68, 0.5);
+        }
+
+        .success {
+            background-color: rgba(210, 251, 1, 0.15);
+            color: #E4FF4D;
+            border: 1px solid rgba(210, 251, 1, 0.4);
+        }
+
+        .font-settings {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+            margin-bottom: 0;
+        }
+
+        .font-settings label {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .font-settings input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: var(--border-color);
+            border-radius: 3px;
+            margin: var(--spacing-xs) 0;
+            position: relative;
+        }
+
+        .font-settings input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #888888;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-top: -5px;
+        }
+
+        .font-settings input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #888888;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .font-settings input[type="range"]::-webkit-slider-runnable-track {
+            height: 6px;
+            border-radius: 3px;
+            background: var(--border-color);
+        }
+
+        .font-settings input[type="range"]::-moz-range-track {
+            height: 6px;
+            border-radius: 3px;
+            background: var(--border-color);
+        }
+
+        .font-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+            margin-bottom: 0;
+        }
+
+        .font-upload {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+            margin-bottom: 0;
+        }
+
+        .font-upload input {
+            width: 100%;
+            padding: var(--spacing-sm);
+            background-color: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .live-preview {
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-md);
+            width: 100%;
+            border: 1px solid var(--border-light);
+        }
+
+        .live-text {
+            color: white;
+            font-size: var(--preview-font-size, 16px);
+            font-family: var(--preview-font-family, 'Inter');
+            text-align: center;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .obs-guide {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .obs-guide p {
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .obs-guide ol {
+            padding-left: var(--spacing-lg);
+            margin-bottom: var(--spacing-base);
+        }
+
+        .obs-guide li {
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .code-snippet {
+            background-color: #151515;
+            padding: var(--spacing-base);
+            border-radius: var(--radius-md);
+            font-family: monospace;
+            font-size: 0.8rem;
+            overflow-x: auto;
+            margin-top: var(--spacing-xs);
+            border: 1px solid var(--border-color);
+        }
+
+        .code-snippet code {
+            white-space: pre-wrap;
+            color: var(--primary-light);
+        }
+
+        .live-preview-box {
+            grid-column: span 12;
+            background-color: var(--card-background);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--spacing-base);
+            border: 1px solid var(--border-color);
+        }
+
+        .live-preview-box h3 {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: var(--spacing-base);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: var(--spacing-sm);
+            font-weight: 600;
+        }
+
+        .live-preview-box h3 i {
+            color: var(--primary-color);
+        }
+
+        .audio-meter {
+            height: 8px;
+            background-color: var(--background-color);
+            border-radius: 4px;
+            margin-top: var(--spacing-xs);
+            overflow: hidden;
+            position: relative;
+            border: 1px solid var(--border-color);
+        }
+
+        .audio-meter-fill {
+            height: 100%;
+            width: 0%;
+            background-color: #888888;
+            border-radius: 4px;
+            transition: width 0.1s ease, background-color 0.2s ease;
+        }
+
+        .audio-test-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .audio-test-content {
+            background-color: var(--card-background);
+            padding: var(--spacing-xl);
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid var(--border-color);
+        }
+
+        .audio-test-content h3 {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: var(--spacing-base);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: var(--spacing-sm);
+            font-weight: 600;
+        }
+
+        .audio-test-section {
+            margin-bottom: var(--spacing-base);
+        }
+
+        .audio-test-section h4 {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-xs);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            font-weight: 500;
+        }
+
+        .audio-test-section h4 i {
+            color: var(--primary-color);
+        }
+
+        .audio-test-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--spacing-base);
+            margin-top: var(--spacing-lg);
+        }
+
+        .audio-test-buttons button {
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            border: 1px solid var(--border-color);
+        }
+
+        .audio-test-section button.test-button {
+            padding: var(--spacing-sm) var(--spacing-lg);
+            width: 100%;
+            justify-content: center;
+            margin-top: var(--spacing-xs);
+        }
+
+        .close-button {
+            background: linear-gradient(135deg, #2A2A2A 0%, #1A1A1A 100%);
+            color: var(--text-secondary);
+            border: 1px solid #151515;
+        }
+
+        .close-button:hover {
+            background: linear-gradient(135deg, #3A3A3A 0%, #2A2A2A 100%);
+            color: var(--text-primary);
+        }
+
+        .close-button:active {
+            transform: translateY(0);
+            background: linear-gradient(135deg, #1A1A1A 0%, #151515 100%);
+        }
+
+        .volume-slider {
+            flex: 1;
+            height: 6px;
+            background: var(--border-color);
+            border-radius: 3px;
+            -webkit-appearance: none;
+            margin: var(--spacing-xs) 0;
+            position: relative;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #888888;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-top: -5px;
+        }
+
+        .volume-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #888888;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .volume-slider::-ms-thumb {
+            width: 16px;
+            height: 16px;
+            background: #888888;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-top: 0;
+        }
+
+        .volume-slider::-webkit-slider-runnable-track {
+            height: 6px;
+            border-radius: 3px;
+        }
+
+        .volume-slider::-moz-range-track {
+            height: 6px;
+            border-radius: 3px;
+        }
+
+        #mic-volume-value, #speaker-volume-value {
+            min-width: 40px;
+            text-align: right;
+            font-weight: 500;
+            color: #AAAAAA;
+        }
+
+        @media (max-width: 1200px) {
+            .bento-grid {
+                grid-template-columns: repeat(12, 1fr);
+                gap: var(--spacing-sm);
+            }
+
+            .bento-box.languages {
+                grid-column: span 4;
+            }
+
+            .bento-box.audio {
+                grid-column: span 8;
+            }
+
+            .bento-box.font-settings {
+                grid-column: span 12;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .bento-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .bento-box.languages,
+            .bento-box.audio,
+            .bento-box.font-settings {
+                grid-column: span 1;
+            }
+
+            .bento-box.audio {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .language-buttons {
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+
+        .language-button {
+            flex: 1;
+            padding: var(--spacing-sm);
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+        }
+
+        .language-button.active {
+            background-color: var(--primary-color);
+            color: #333333;
+            border-color: var(--primary-color);
+        }
+
+        .language-button:hover:not(.active) {
+            border-color: var(--border-light);
+            background-color: var(--border-color);
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h1 class="title">Real-Time Speech Translator</h1>
 
-        <!-- Button to toggle listening -->
-        <button id="listen-button" class="listen-button">Start Listening</button>
+        <div class="main-controls">
+            <button id="listen-button" class="listen-button">
+                <i class="fas fa-microphone"></i>
+                Start Listening
+            </button>
+            <button id="test-audio-button" class="test-button">
+                <i class="fas fa-headset"></i>
+                Test Audio
+            </button>
+        </div>
 
-        <!-- Language selection -->
-        <div class="language-selection">
-            <label for="input-language">Input Language</label>
-            <select id="input-language">
-                <option value="de">German</option>
-                <option value="en">English</option>
-            </select>
+        <div class="bento-grid">
+            <div class="bento-box languages">
+                <h3><i class="fas fa-language"></i> Language Settings</h3>
+                <div class="language-group">
+                    <label><i class="fas fa-arrow-right"></i> Input Language</label>
+                    <div class="language-buttons">
+                        <button type="button" class="language-button active" data-lang="de">German</button>
+                        <button type="button" class="language-button" data-lang="en">English</button>
+                    </div>
+                </div>
 
-            <label for="output-language">Output Language</label>
+                <div class="language-group">
+                    <label for="output-language"><i class="fas fa-arrow-left"></i> Output Language</label>
+                    <div class="select-container">
             <select id="output-language">
                 <option value="en">English</option>
                 <option value="es">Spanish</option>
@@ -30,47 +826,152 @@
                 <option value="it">Italian</option>
                 <option value="pt">Portuguese</option>
                 <option value="ru">Russian</option>
+                <option value="bg">Bulgarian</option>
                 <option value="zh">Chinese</option>
                 <option value="ja">Japanese</option>
                 <option value="ko">Korean</option>
             </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bento-box audio">
+                <h3><i class="fas fa-volume-up"></i> Audio Settings</h3>
+                
+                <div class="audio-settings-grid">
+                    <div class="device-group top-left">
+                        <label for="microphone-select">
+                            <i class="fas fa-microphone"></i> Microphone
+                        </label>
+                        <div class="select-container">
+                            <select id="microphone-select"></select>
+                        </div>
+                    </div>
+
+                    <div class="device-group top-right">
+                        <label for="speaker-select">
+                            <i class="fas fa-volume-up"></i> Speakers
+                        </label>
+                        <div class="select-container">
+                            <select id="speaker-select"></select>
+                        </div>
+                    </div>
+
+                    <div class="device-group middle-left">
+                        <label for="mic-volume">
+                            <i class="fas fa-volume-down"></i> Input Volume
+                        </label>
+                        <div class="volume-control">
+                            <input type="range" id="mic-volume" min="0" max="100" step="1" value="75" class="volume-slider">
+                            <span id="mic-volume-value">75%</span>
+                        </div>
+                    </div>
+
+                    <div class="device-group middle-right">
+                        <label for="speaker-volume">
+                            <i class="fas fa-volume-high"></i> Output Volume
+                        </label>
+                        <div class="volume-control">
+                            <input type="range" id="speaker-volume" min="0" max="100" step="1" value="75" class="volume-slider">
+                            <span id="speaker-volume-value">75%</span>
+                        </div>
+                    </div>
+
+                    <div class="device-group bottom-left">
+                        <label for="headphones-select">
+                            <i class="fas fa-headphones"></i> Headphones
+                        </label>
+                        <div class="select-container">
+                            <select id="headphones-select"></select>
+                        </div>
+                    </div>
+                    
+                    <div class="device-group bottom-right">
+                        <label for="voice-select">
+                            <i class="fas fa-comment-dots"></i> Speaker Voice
+                        </label>
+                        <div class="select-container">
+                            <select id="voice-select">
+                                <option value="default">Default</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="neutral">Neutral</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bento-box font-settings">
+                <h3><i class="fas fa-font"></i> Font Settings</h3>
+                <div class="font-settings">
+                    <label for="font-size">Font Size: <span id="font-size-value">16</span>px</label>
+                    <input type="range" id="font-size" min="12" max="32" step="1" value="16">
+                </div>
+
+                <div class="font-group">
+                    <label for="font-family"><i class="fas fa-text"></i> Font Family</label>
+                    <div class="select-container">
+                        <select id="font-family">
+                            <option value="Inter">Inter (Default)</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Helvetica">Helvetica</option>
+                            <option value="Georgia">Georgia</option>
+                            <option value="Times New Roman">Times New Roman</option>
+                            <option value="Courier New">Courier New</option>
+                            <option value="Verdana">Verdana</option>
+                            <option value="Tahoma">Tahoma</option>
+                        </select>
+                    </div>
         </div>
 
-        <!-- Text Display -->
+                <div class="font-upload">
+                    <label for="font-upload"><i class="fas fa-upload"></i> Custom Font:</label>
+                    <input type="file" id="font-upload" accept=".ttf,.otf,.woff,.woff2">
+                </div>
+            </div>
+        </div>
+
         <div class="text-display">
             <div class="card">
-                <h3 id="original-label">Original (German)</h3>
+                <h3><i class="fas fa-comment"></i> <span id="original-label">Original (German)</span></h3>
                 <p id="original-text">Speak to see text here...</p>
             </div>
             <div class="card">
-                <h3 id="translated-label">Translated (English)</h3>
+                <h3><i class="fas fa-language"></i> <span id="translated-label">Translated (English)</span></h3>
                 <p id="translated-text">Translation will appear here...</p>
             </div>
         </div>
 
-        <!-- Control buttons -->
-        <button id="clear-button" class="clear-button">Clear Text</button>
-        <button id="swap-button" class="swap-button">Swap Languages</button>
-
-        <!-- Error and success messages -->
         <div id="error-message" class="message error"></div>
         <div id="success-message" class="message success"></div>
 
-        <!-- Custom Font Upload -->
-        <div class="font-upload">
-            <input type="file" id="font-upload" accept=".ttf,.otf,.woff,.woff2">
+        <div class="live-preview-box">
+            <h3><i class="fas fa-closed-captioning"></i> Live Translation View</h3>
+            <div class="live-preview">
+                <p id="live-text" class="live-text">Translated text will appear here...</p>
+            </div>
+        </div>
         </div>
 
-        <!-- Font settings -->
-        <div class="font-settings">
-            <label for="font-size">Font Size: <span id="font-size-value">16</span>px</label>
-            <input type="range" id="font-size" min="12" max="32" step="1" value="16">
-        </div>
-
-        <!-- Live Text Preview -->
-        <div class="live-preview">
-            <h3>Live Text Overlay Preview</h3>
-            <p id="live-text" class="live-text">Translated text will appear here...</p>
+    <div class="audio-test-modal">
+        <div class="audio-test-content">
+            <h3><i class="fas fa-headset"></i> Test Audio</h3>
+            <div class="audio-test-section">
+                <h4><i class="fas fa-microphone"></i> Microphone Level</h4>
+                <div class="audio-meter">
+                    <div id="audio-meter-microphone" class="audio-meter-fill"></div>
+                </div>
+            </div>
+            <div class="audio-test-section">
+                <h4><i class="fas fa-volume-up"></i> Speaker Test</h4>
+                <button id="play-test-sound" class="test-button">
+                    <i class="fas fa-play"></i> Play Test Sound
+                </button>
+            </div>
+            <div class="audio-test-buttons">
+                <button id="close-audio-test" class="close-button">Close</button>
+            </div>
         </div>
     </div>
 
