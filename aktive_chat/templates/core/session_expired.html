@@ -1,0 +1,24 @@
+<!-- templates/core/session_expired.html -->
+{% extends "base.html" %}
+
+{% block title %}Session Expired{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Session Expired</h5>
+                </div>
+                <div class="card-body text-center">
+                    <i class="fas fa-clock fa-4x text-muted mb-3"></i>
+                    <h4>This subtitle session has expired.</h4>
+                    <p class="text-muted">The session is no longer available for viewing.</p>
+                    <p>Please contact the session owner for more information.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

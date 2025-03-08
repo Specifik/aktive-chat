@@ -1,0 +1,79 @@
+<!-- templates/core/sessions_list.html -->
+{% extends "base.html" %}
+
+{% block title %}Your Subtitle Sessions{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Your Subtitle Sessions</h2>
+        <a href="{% url 'create_session' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i> New Session
+        </a>
+    </div>
+    
+    {% if sessions %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Created</th>
+                    <th>Status</th>
+                    <th>Views</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for session in sessions %}
+                <tr>
+                    <td>
+                        <a href="{% url 'session_detail' session.id %}">{{ session.title }}</a>
+                        {% if session.password_protected %}
+                        <span class="badge bg-secondary ms-2">
+                            <i class="fas fa-lock"></i>
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td>{{ session.created_at|date:"M d, Y H:i" }}</td>
+                    <td>
+                        {% if session.is_expired %}
+                        <span class="badge bg-danger">Expired</span>
+                        {% elif session.is_active %}
+                        <span class="badge bg-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-warning">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ session.view_count }}</td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'session_detail' session.id %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ session.get_viewer_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-danger">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <h5>You don't have any subtitle sessions yet</h5>
+            <p class="text-muted mb-4">Create a session to share your translations with others</p>
+            <a href="{% url 'create_session' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i> Create Your First Session
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
